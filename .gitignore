@@ -1,0 +1,14 @@
+*.csv
+*.xls
+*.xlsx
+test.*
+
+# 排除 __pycache__ 目录
+__pycache__/
+
+# 排除 Python 字节码缓存文件（.pyc, .pyo, .pyd 等）
+*.py[cod]
+
+# 排除特定环境或 IDE 生成的临时文件（可选）
+*$py.class
+.pytest_cache/  # 如果是 pytest 用户
