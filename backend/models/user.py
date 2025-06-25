@@ -12,11 +12,15 @@ class UserCreate(BaseModel):
 class UserLogin(BaseModel):
     username: str = Form(..., min_length=3, max_length=20)
     password: str = Form(..., min_length=8)
-    token: Optional[str]
-    refresh_token: Optional[str]
+    token: Optional[str] = None
+    refresh_token: Optional[str] = None
 
 
 class Token(BaseModel):
     access_token: str
     refresh_token: str
     token_type: str
+
+
+class RefreshToken(BaseModel):
+    refresh_token: str

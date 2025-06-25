@@ -1,13 +1,9 @@
 from passlib.context import CryptContext
 from datetime import timedelta, datetime
 from jose import jwt, JWTError
+from app_config.auth_config import secret_key, algorithm, access_token_expire_minutes, refresh_token_expire_days
 # 配置密码哈希策略
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-SECRET_KEY = "your-secret-key-please-keep-it-secret"
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30  # Access Token 有效期短
-REFRESH_TOKEN_EXPIRE_DAYS = 7     # Refresh Token 有效期长
 
 
 def hash_password(password: str) -> str:
@@ -21,43 +17,20 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 
 
 def create_access_token(username: str):
-    expires = datetime.utcnow()+timedelta(minutes=30)
+    expires = datetime.utcnow()+timedelta(minutes=access_token_expire_minutes)
     playload = {"sub": username, "exp": expires}
-    return jwt.encode(playload, SECRET_KEY, algorithm=ALGORITHM)
+    return jwt.encode(playload, secret_key, algorithm)
 
 
 def create_refresh_token(username: str):
-    expires = datetime.utcnow()+timedelta(days=7)
+    expires = datetime.utcnow()+timedelta(days=refresh_token_expire_days)
     playload = {"sub": username, "exp": expires}
-    return jwt.encode(playload, SECRET_KEY, algorithm=ALGORITHM)
+    return jwt.encode(playload, secret_key, algorithm)
 
 
 def verify_token(token: str):
     try:
-        playload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        return get_user(playload['sub'])
+        playload = jwt.decode(token, secret_key, algorithms=[algorithm])
+        return playload
     except JWTError:
         return None
-    # def create_jwt_token(data: dict, expires_delta: Optional[timedelta] = None):
-    #     to_encode = data.copy()
-    #     if expires_delta:
-    #         expire = datetime.utcnow() + expires_delta
-    #     else:
-    #         expire = datetime.utcnow() + timedelta(minutes=15)
-    #     to_encode.update({"exp": expire})
-    #     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-    #     return encoded_jwt
-
-    # def verify_refresh_token(refresh_token: str):
-    #     try:
-    #         payload = jwt.decode(refresh_token, SECRET_KEY, algorithms=[ALGORITHM])
-    #         username: str = payload.get("sub")
-    #         if username is None:
-    #             return None
-    #         # 验证是否与数据库中存储的 Refresh Token 一致
-    #         user = fake_users_db.get(username)
-    #         if user and user.refresh_token == refresh_token:
-    #             return user
-    #     except JWTError:
-    #         return None
-    #     return None
