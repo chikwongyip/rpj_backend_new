@@ -11,4 +11,4 @@ class CompanyInfo(Base):
     logo_url = Column(String(255))
     icp_number = Column(String(50))
     created_at = Column(DateTime)
-    update_at = Column(DateTime)
+    updated_at = Column(DateTime)
