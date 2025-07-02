@@ -12,3 +12,13 @@ class Brands(Base):
     created_at = Column(DateTime)
     updated_at = Column(DateTime)
     is_deleted = Column(Integer)
+
+
+class BrandAdd(Base):
+    __tablename__ = 'brands'
+    name = Column(String(20))
+    description = Column(String)
+    logo_url = Column(String(255))
+    created_at = Column(DateTime)
+    updated_at = Column(DateTime)
+    is_deleted = Column(Integer)

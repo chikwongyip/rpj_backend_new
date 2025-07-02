@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 from db.db import get_db
-from models.brand import BrandInfo as BrandModel
-from schemas.brand import Brands as BrandSchemas
+from models.brand import BrandInfo as BrandModel, BrandAdd as BrandModelAdd
+from schemas.brand import Brands as BrandSchemas, BrandAdd as BrandSchemaAdd
 from models.common import BaseResponse
 from typing import Optional
 
@@ -23,4 +23,21 @@ async def get_brands(id: Optional[int] = None):
         # print(db_company.id)
         return BaseResponse.success(data=res)
     else:
-        return BaseResponse.error(code=1, message="数据不存在")
+        return BaseResponse.error(code=1, message="没有查到数据")
+
+
+@router.post('/add')
+async def add_brand(brand: BrandModelAdd):
+    with get_db() as session:
+
+        brand = BrandSchemaAdd(
+            name=brand.name,
+            description=brand.description,
+            logo_url=brand.logo_url,
+            created_at=brand.created_at,
+            updated_at=brand.updated_at,
+            is_deleted=brand.is_deleted
+        )
+        session.add(brand)
+        session.commit()
+    return BaseResponse.success(data={"添加成功!"})
