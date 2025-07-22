@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 from db.db import get_db
 from models.brand import BrandInfo as BrandModel, BrandAdd as BrandModelAdd
-from schemas.brand import Brands as BrandSchemas, BrandAdd as BrandSchemaAdd
+from schemas.brand import BrandCreate, BrandUpdate, BrandInDB
 from models.common import BaseResponse
 from typing import Optional
 

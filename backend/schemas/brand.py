@@ -1,26 +1,11 @@
-from pydantic import BaseModel
-from datetime import datetime
+from sqlalchemy.orm import declarative_base
+from schemas.base import BaseMixin
+from sqlalchemy import String, Column
+Base = declarative_base()
 
 
-class BrandBase(BaseModel):
-    name: str
-    description: str | None = None
-    logo_url: str | None = None
-
-
-class BrandCreate(BrandBase):
-    pass
-
-
-class BrandUpdate(BrandBase):
-    pass
-
-
-class BrandInDB(BrandBase):
-    id: int
-    created_at: datetime
-    updated_at: datetime
-    is_deleted: bool
-
-    class Config:
-        orm_mode = True
+class brands(Base, BaseMixin):
+    __tablename__ = "brands"
+    name = Column(String(100))
+    description = Column(String)
+    url = Column(String(255))
