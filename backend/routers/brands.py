@@ -1,9 +1,10 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from db.db import get_db
-from models.brand import BrandInfo as BrandModel, BrandAdd as BrandModelAdd
-from schemas.brand import BrandCreate, BrandUpdate, BrandInDB
+from models.brand import BrandCreate, BrandUpdate
+from schemas.brand import Brands
 from models.common import BaseResponse
 from typing import Optional
+from sqlalchemy.orm import Session
 
 router = APIRouter(prefix='/admin/brand', tags=['品牌管理'])
 
@@ -14,12 +15,12 @@ async def get_brands(id: Optional[int] = None):
 
     with get_db() as session:
         if id:
-            res = session.query(BrandSchemas).filter_by(
+            res = session.query(Brands).filter_by(
                 id=id).first()
         else:
-            res = session.query(BrandSchemas).all()
+            res = session.query(Brands).all()
     if res:
-        res = BrandSchemas.model_validate(res)
+        res = Brands.model_validate(res)
         # print(db_company.id)
         return BaseResponse.success(data=res)
     else:
@@ -27,10 +28,10 @@ async def get_brands(id: Optional[int] = None):
 
 
 @router.post('/add')
-async def add_brand(brand: BrandModelAdd):
+async def add_brand(brand: BrandCreate):
     with get_db() as session:
 
-        brand = BrandSchemaAdd(
+        brand = Brands(
             name=brand.name,
             description=brand.description,
             logo_url=brand.logo_url,
@@ -41,3 +42,14 @@ async def add_brand(brand: BrandModelAdd):
         session.add(brand)
         session.commit()
     return BaseResponse.success(data={"添加成功!"})
+
+
+@router.delete('/delete/{id}')
+async def delete_brand(id: int, db: Session = Depends(get_db)):
+    db_item = db.query(Brands).filter_by(id=id).first()
+    if not db_item:
+        return BaseResponse.error(code=1, message="品牌不存在")
+
+    res = db.delete(db_item)
+    db.commit()
+    return BaseResponse.success(data=res)
