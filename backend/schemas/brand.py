@@ -10,6 +10,7 @@ class Brands(Base, BaseMixin):
     id = Column(Integer, primary_key=True)
     name = Column(String(100))
     description = Column(String)
-    url = Column(String(255))
+    logo_url = Column(String(255))
     created_at = Column(DateTime, default=datetime.now)
     updated_at = Column(DateTime, default=datetime.now)
+    is_deleted = Column(Integer, default=0)

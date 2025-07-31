@@ -5,7 +5,7 @@ from schemas.brand import Brands
 from models.common import BaseResponse
 from typing import Optional
 from sqlalchemy.orm import Session
-
+# from pydantic_sqlalchemy import sqlalchemy_to_pydantic
 router = APIRouter(prefix='/admin/brand', tags=['品牌管理'])
 
 
@@ -20,9 +20,9 @@ async def get_brands(id: Optional[int] = None):
         else:
             res = session.query(Brands).all()
     if res:
-        res = Brands.model_validate(res)
-        # print(db_company.id)
-        return BaseResponse.success(data=res)
+        # print(res)
+        modelRes = [BrandCreate.model_validate(i) for i in res]
+        return BaseResponse.success(data=modelRes)
     else:
         return BaseResponse.error(code=1, message="没有查到数据")
 
@@ -34,11 +34,12 @@ async def add_brand(brand: BrandCreate):
         brand = Brands(
             name=brand.name,
             description=brand.description,
-            logo_url=brand.logo_url,
+            logo_url=str(brand.logo_url),
             created_at=brand.created_at,
             updated_at=brand.updated_at,
             is_deleted=brand.is_deleted
         )
+        # print(brand)
         session.add(brand)
         session.commit()
     return BaseResponse.success(data={"添加成功!"})

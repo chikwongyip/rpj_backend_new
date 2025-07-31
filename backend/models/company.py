@@ -1,4 +1,4 @@
-from pydantic import BaseModel, HttpUrl, Field, ConfigDict, field_validator
+from pydantic import BaseModel, HttpUrl, Field, ConfigDict
 from typing import Optional
 from datetime import datetime
 
@@ -14,8 +14,8 @@ class CompanyInfo(BaseModel):
     # 自定义校验：确保名称有效
     model_config = ConfigDict(from_attributes=True)
 
-    @field_validator("created_at", mode="before")
-    def parse_datetime(cls, value):
-        if isinstance(value, str):
-            return datetime.fromisoformat(value)
-        return value
+    # @field_validator("created_at", mode="before")
+    # def parse_datetime(cls, value):
+    #     if isinstance(value, str):
+    #         return datetime.fromisoformat(value)
+    #     return value
