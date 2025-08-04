@@ -31,8 +31,10 @@ class BrandCreate(BrandBase):
 
 
 class BrandUpdate(BaseModel):
+    id: int
     name: str = Field(..., min_length=2, max_length=20)
     description: Optional[str] = None
     logo_url: Optional[HttpUrl] = None
     is_deleted: Optional[int] = 0
+    updated_at: Optional[datetime] = datetime.utcnow()
     model_config = ConfigDict(from_attributes=True)

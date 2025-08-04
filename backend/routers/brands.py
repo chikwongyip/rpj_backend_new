@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends
-from db.db import get_db
+from db.db import get_db, get_db2
 from models.brand import BrandCreate, BrandUpdate
 from schemas.brand import Brands
 from models.common import BaseResponse
@@ -46,11 +46,25 @@ async def add_brand(brand: BrandCreate):
 
 
 @router.delete('/delete/{id}')
-async def delete_brand(id: int, db: Session = Depends(get_db)):
+async def delete_brand(id: int, db: Session = Depends(get_db2)):
     db_item = db.query(Brands).filter_by(id=id).first()
+    # print(db_item)
     if not db_item:
         return BaseResponse.error(code=1, message="品牌不存在")
 
     res = db.delete(db_item)
     db.commit()
     return BaseResponse.success(data=res)
+
+
+@router.post('/update')
+async def update_brand(brand: BrandUpdate, db: Session = Depends(get_db2)):
+    db_item = db.query(Brands).filter_by(id=brand.id).first()
+    if not db_item:
+        return BaseResponse.error(code=1, message="品牌不存在")
+    db_item.description = brand.description
+    db_item.is_deleted = brand.is_deleted
+    db_item.name = brand.name
+    db_item.logo_url = str(brand.logo_url)
+    db.commit()
+    return BaseResponse.success(data={"result": "更新成功"})
