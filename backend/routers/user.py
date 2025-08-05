@@ -33,7 +33,7 @@ async def login(user: UserLogin, db: Session = Depends(get_db)):
 
 @router.post('/regist')
 async def regist(user: UserCreate, db: Session = Depends(get_db)):
-    hashed_password = hashed_password(user.password)
+    hashed_password = hash_password(user.password)
     new_user = Users(
         name=user.username,
         hashed_password=hashed_password,

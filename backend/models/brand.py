@@ -16,19 +16,6 @@ class BrandCreate(BrandBase):
     updated_at: Optional[datetime] = None
     model_config = ConfigDict(from_attributes=True)
 
-    # model_config = ConfigDict(from_attributes=True)
-    # @field_validator("created_at", mode="before")
-    # def parse_datetime(cls, value):
-    #     if isinstance(value, str):
-    #         return datetime.fromisoformat(value)
-    #     return value
-
-    # @field_validator("updated_at", mode="before")
-    # def parse_datetime(cls, value):
-    #     if isinstance(value, str):
-    #         return datetime.fromisoformat(value)
-    #     return value
-
 
 class BrandUpdate(BaseModel):
     id: int
