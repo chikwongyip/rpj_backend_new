@@ -2,7 +2,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 from db.config import mysql_config
-from contextlib import contextmanager
+# from contextlib import contextmanager
 from urllib.parse import quote_plus
 from typing import Generator
 safe_password = quote_plus(mysql_config.get('password'))
@@ -12,16 +12,16 @@ engine = create_engine(engine_url)
 SessionFactory = sessionmaker(bind=engine)
 
 
-@contextmanager
-def get_db():
-    db = SessionFactory()
-    try:
-        yield db
-    finally:
-        db.close()
+# @contextmanager
+# def get_db():
+#     db = SessionFactory()
+#     try:
+#         yield db
+#     finally:
+#         db.close()
 
 
-def get_db2() -> Generator[Session, None, None]:
+def get_db() -> Generator[Session, None, None]:
     db = SessionFactory()
     try:
         yield db

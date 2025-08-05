@@ -1,18 +1,20 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from models.user import UserLogin, UserCreate, RefreshToken
 from models.common import BaseResponse
 from uitls.security import hash_password, verify_password, create_access_token, create_refresh_token, verify_token
 from schemas.user import Users
 from db.db import get_db
+from sqlalchemy.orm import Session
 
 router = APIRouter(prefix='/admin/users', tags=['用户管理'])
 
 
 @router.post('/login')
-async def login(user: UserLogin):
-    with get_db() as session:
-        db_user = session.query(Users).filter_by(
-            name=user.username).first()
+async def login(user: UserLogin, db: Session = Depends(get_db)):
+    db_user = db.query(Users).filter_by(name=user.username).first()
+    # with get_db() as session:
+    #     db_user = session.query(Users).filter_by(
+    #         name=user.username).first()
 
     res = verify_password(user.password, db_user.hashed_password)
 
@@ -30,15 +32,24 @@ async def login(user: UserLogin):
 
 
 @router.post('/regist')
-async def regist(user: UserCreate):
-    with get_db() as session:
+async def regist(user: UserCreate, db: Session = Depends(get_db)):
+    hashed_password = hashed_password(user.password)
+    new_user = Users(
+        name=user.username,
+        hashed_password=hashed_password,
+        email=user.email
+    )
+    db.add(new_user)
+    db.commit()
+    return BaseResponse.success(data={"result": "注册成功"})
+    # with get_db() as session:
 
-        hashed_password = hash_password(user.password)
-        new_user = Users(
-            name=user.username, hashed_password=hashed_password, email=user.email)
-        res = session.add(new_user)
-        session.commit()
-    return res
+    #     hashed_password = hash_password(user.password)
+    #     new_user = Users(
+    #         name=user.username, hashed_password=hashed_password, email=user.email)
+    #     res = session.add(new_user)
+    #     session.commit()
+    # return res
 
 
 @router.post("/refresh_token")
