@@ -11,7 +11,7 @@ router = APIRouter(prefix='/admin/product', tags=['产品管理'])
 @router.get('/list')
 async def get_product_list(id: int = None, db: Session = Depends(get_db)):
     if id:
-        db_item = db.query(Products).filter_by(id=id).frist()
+        db_item = db.query(Products).filter_by(id=id).first()
     else:
         db_item = db.query(Products).all()
     if db_item:
@@ -35,17 +35,17 @@ async def add_product(product: ProductModel, db: Session = Depends(get_db)):
 
 @router.delete('/delete/{id}')
 async def del_product(id: int, db: Session = Depends(get_db)):
-    db_item = db.query(Products).filter_by(id=id).frist()
+    db_item = db.query(Products).filter_by(id=id).first()
     if not db_item:
         return BaseResponse.error(code=1, message="找不到该产品")
-    res = db.delete(db_item)
+    db.delete(db_item)
     db.commit()
-    return BaseResponse.success(data=res)
+    return BaseResponse.success(data={'result': '删除成功'})
 
 
 @router.post('/update')
 async def update_product(product: ProductModel, db: Session = Depends(get_db)):
-    db_item = db.query(Products).filter_by(id=product.id).frist()
+    db_item = db.query(Products).filter_by(id=product.id).first()
     if not db_item:
         return BaseResponse.error(code=1, message="找不到该产品")
     db_item.name = product.name
