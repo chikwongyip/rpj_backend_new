@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field, ConfigDict, HttpUrl
-from typing import Optional
+from typing import Optional, List
 from datetime import datetime
 
 
@@ -16,3 +16,7 @@ class ProductImageModel(ProductImageBase):
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
     model_config = ConfigDict(from_attributes=True)
+
+
+class ProductImageID(BaseModel):
+    ids: List[int]
