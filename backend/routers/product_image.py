@@ -34,3 +34,17 @@ async def update_images(item: ProductImageModel, db: Session = Depends(get_db)):
     db.delete()
     db.commit()
     return BaseResponse.success(data={"result": "更新成功"})
+
+
+@router.get('/info')
+async def get_images(product_id: int = None, db: Session = Depends(get_db)):
+    if product_id:
+        db_item = db.query(ProductImages).filter_by(
+            product_id=product_id).all()
+    else:
+        db_item = db.query(ProductImages).all()
+    if db_item:
+        modelRes = [ProductImageModel.model_validate(i) for i in db_item]
+        return BaseResponse.success(data=modelRes)
+    else:
+        return BaseResponse.error(code=1, message="找不到数据")
