@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from models.product_attachments import ProductAttachmentsModel, ProductAttachmentsID
 from schemas.product_attachments import ProductAttachments
 import datetime
-router = APIRouter(prefix='/admin/product_attachments', tags=['产品图片管理'])
+router = APIRouter(prefix='/admin/product_attachments', tags=['产品附件管理'])
 
 
 @router.post('/add')
@@ -19,25 +19,25 @@ async def add_attachements(items: list[ProductAttachmentsModel], db: Session = D
 
 
 @router.post('/delete')
-async def delete_images(items: ProductAttachmentsID, db: Session = Depends(get_db)):
+async def delete_attachements(items: ProductAttachmentsID, db: Session = Depends(get_db)):
     res = db.query(ProductAttachments).filter(ProductAttachments.id.in_(
-        items)).delete(synchronize_session=False)
+        items.ids)).delete(synchronize_session=False)
     db.commit()
     return BaseResponse.success(data=res)
 
 
 @router.post('/update')
-async def update_images(item: ProductAttachmentsModel, db: Session = Depends(get_db)):
+async def update_attachment(item: ProductAttachmentsModel, db: Session = Depends(get_db)):
     db_item = db.query(ProductAttachments).filter_by(id=item.id).first()
     if not db_item:
         return BaseResponse.error(code=1, message="图片id不存在")
-    db.delete()
+    # db.delete()
     db.commit()
     return BaseResponse.success(data={"result": "更新成功"})
 
 
 @router.get('/info')
-async def get_images(product_id: int = None, db: Session = Depends(get_db)):
+async def get_attachments(product_id: int = None, db: Session = Depends(get_db)):
     if product_id:
         db_item = db.query(ProductAttachments).filter_by(
             product_id=product_id).all()

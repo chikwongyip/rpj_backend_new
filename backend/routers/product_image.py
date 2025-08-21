@@ -21,7 +21,7 @@ async def add_images(items: list[ProductImageModel], db: Session = Depends(get_d
 @router.post('/delete')
 async def delete_images(items: ProductImageID, db: Session = Depends(get_db)):
     res = db.query(ProductImages).filter(ProductImages.id.in_(
-        items)).delete(synchronize_session=False)
+        items.ids)).delete(synchronize_session=False)
     db.commit()
     return BaseResponse.success(data=res)
 
@@ -31,7 +31,7 @@ async def update_images(item: ProductImageModel, db: Session = Depends(get_db)):
     db_item = db.query(ProductImages).filter_by(id=item.id).first()
     if not db_item:
         return BaseResponse.error(code=1, message="图片id不存在")
-    db.delete()
+    # db.delete()
     db.commit()
     return BaseResponse.success(data={"result": "更新成功"})
 

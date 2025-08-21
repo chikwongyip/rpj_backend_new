@@ -6,7 +6,7 @@ Base = declarative_base()
 
 
 class ProductAttachments(Base, BaseMixin):
-    __tablename__ = 'product_images'
+    __tablename__ = 'product_attachments'
     product_id = Column(Integer)
     url = Column(String(255))
     original_name = Column(String(255))
