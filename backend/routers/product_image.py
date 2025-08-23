@@ -32,6 +32,7 @@ async def update_images(item: ProductImageModel, db: Session = Depends(get_db)):
     if not db_item:
         return BaseResponse.error(code=1, message="图片id不存在")
     # db.delete()
+    db_item.update(item.model_dump())
     db.commit()
     return BaseResponse.success(data={"result": "更新成功"})
 

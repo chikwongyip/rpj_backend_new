@@ -28,10 +28,11 @@ async def delete_attachements(items: ProductAttachmentsID, db: Session = Depends
 
 @router.post('/update')
 async def update_attachment(item: ProductAttachmentsModel, db: Session = Depends(get_db)):
-    db_item = db.query(ProductAttachments).filter_by(id=item.id).first()
+    db_item = db.query(ProductAttachments).filter_by(id=item.id)
     if not db_item:
         return BaseResponse.error(code=1, message="图片id不存在")
     # db.delete()
+    db_item.update(item.model_dump())
     db.commit()
     return BaseResponse.success(data={"result": "更新成功"})
 
@@ -44,7 +45,7 @@ async def get_attachments(product_id: int = None, db: Session = Depends(get_db))
     else:
         db_item = db.query(ProductAttachments).all()
     if db_item:
-        modelRes = [ProductAttachments.model_validate(i) for i in db_item]
+        modelRes = [ProductAttachmentsModel.model_validate(i) for i in db_item]
         return BaseResponse.success(data=modelRes)
     else:
         return BaseResponse.error(code=1, message="找不到数据")
