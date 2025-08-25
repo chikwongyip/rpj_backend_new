@@ -2,16 +2,16 @@ from fastapi import APIRouter, Depends
 from db.db import get_db
 from models.common import BaseResponse
 from sqlalchemy.orm import Session
-from models.product_attachments import ProductAttachmentsModel, ProductAttachmentsID
+from models.product_attachments import ProductAttachmentsModel, ProductAttachmentsID, ProductAttachmentsBase
 from schemas.product_attachments import ProductAttachments
 import datetime
 router = APIRouter(prefix='/admin/product_attachments', tags=['产品附件管理'])
 
 
 @router.post('/add')
-async def add_attachements(items: list[ProductAttachmentsModel], db: Session = Depends(get_db)):
+async def add_attachements(items: ProductAttachmentsModel, db: Session = Depends(get_db)):
     attachments = [ProductAttachments(product_id=i.product_id, url=str(i.url),
-                                      original_name=i.original_name, file_type=i.file_type, size=i.size) for i in items]
+                                      original_name=i.original_name, file_type=i.file_type, size=i.size) for i in items.data]
 
     db.add_all(attachments)
     db.commit()
@@ -27,12 +27,20 @@ async def delete_attachements(items: ProductAttachmentsID, db: Session = Depends
 
 
 @router.post('/update')
-async def update_attachment(item: ProductAttachmentsModel, db: Session = Depends(get_db)):
-    db_item = db.query(ProductAttachments).filter_by(id=item.id)
-    if not db_item:
+async def update_attachment(items: ProductAttachmentsModel, db: Session = Depends(get_db)):
+    ids = (
+        [items.data.id] if isinstance(items.data, ProductAttachmentsBase)
+        else [image.id for image in items.data]
+    )
+    db_item = db.query(ProductAttachments).filter(
+        ProductAttachments.id.in_(set(ids))).all()
+    found_ids = {i.id for i in db_item}
+    missing_ids = set(ids) - found_ids
+    if missing_ids:
         return BaseResponse.error(code=1, message="图片id不存在")
-    # db.delete()
-    db_item.update(item.model_dump())
+    for item in items:
+        item.updated_at = datetime.datetime.now()
+        db_item.update(item.model_dump())
     db.commit()
     return BaseResponse.success(data={"result": "更新成功"})
 
@@ -45,7 +53,7 @@ async def get_attachments(product_id: int = None, db: Session = Depends(get_db))
     else:
         db_item = db.query(ProductAttachments).all()
     if db_item:
-        modelRes = [ProductAttachmentsModel.model_validate(i) for i in db_item]
+        modelRes = [ProductAttachmentsBase.model_validate(i) for i in db_item]
         return BaseResponse.success(data=modelRes)
     else:
         return BaseResponse.error(code=1, message="找不到数据")
