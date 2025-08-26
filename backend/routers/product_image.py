@@ -4,12 +4,16 @@ from models.common import BaseResponse
 from sqlalchemy.orm import Session
 from models.product_image import ProductImageModel, ProductImageID, ProductImageBase
 from schemas.product_image import ProductImages
+from dependenice.product_id import check_image_product_ids
 import datetime
 router = APIRouter(prefix='/admin/product_image', tags=['产品图片管理'])
 
 
 @router.post('/add')
-async def add_images(items: ProductImageModel, db: Session = Depends(get_db)):
+async def add_images(items: ProductImageModel = Depends(check_image_product_ids), db: Session = Depends(get_db)):
+    # middleware check key exist
+    if items.code:
+        return items
     images = [ProductImages(product_id=i.product_id, url=str(i.url),
                             sort_order=i.sort_order, is_thumbnail=i.is_thumbnail) for i in items.data]
 
@@ -27,8 +31,9 @@ async def delete_images(items: ProductImageID, db: Session = Depends(get_db)):
 
 
 @router.post('/update')
-async def update_images(items: ProductImageModel, db: Session = Depends(get_db)):
-    # print(items)
+async def update_images(items: ProductImageModel = Depends(check_image_product_ids), db: Session = Depends(get_db)):
+    if items.code:
+        return items
     ids = (
         [items.data.id] if isinstance(items.data, ProductImageBase)
         else [image.id for image in items.data]

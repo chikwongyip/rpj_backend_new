@@ -1,15 +1,18 @@
+import datetime
 from fastapi import APIRouter, Depends
 from db.db import get_db
 from models.common import BaseResponse
 from sqlalchemy.orm import Session
 from models.product_attachments import ProductAttachmentsModel, ProductAttachmentsID, ProductAttachmentsBase
 from schemas.product_attachments import ProductAttachments
-import datetime
+from dependenice.product_id import check_attachment_product_ids
 router = APIRouter(prefix='/admin/product_attachments', tags=['产品附件管理'])
 
 
 @router.post('/add')
-async def add_attachements(items: ProductAttachmentsModel, db: Session = Depends(get_db)):
+async def add_attachements(items: ProductAttachmentsModel = Depends(check_attachment_product_ids), db: Session = Depends(get_db)):
+    if items.code:
+        return items
     attachments = [ProductAttachments(product_id=i.product_id, url=str(i.url),
                                       original_name=i.original_name, file_type=i.file_type, size=i.size) for i in items.data]
 
@@ -27,7 +30,9 @@ async def delete_attachements(items: ProductAttachmentsID, db: Session = Depends
 
 
 @router.post('/update')
-async def update_attachment(items: ProductAttachmentsModel, db: Session = Depends(get_db)):
+async def update_attachment(items: ProductAttachmentsModel = Depends(check_attachment_product_ids), db: Session = Depends(get_db)):
+    if items.code:
+        return items
     ids = (
         [items.data.id] if isinstance(items.data, ProductAttachmentsBase)
         else [image.id for image in items.data]

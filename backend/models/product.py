@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field, ConfigDict
-from typing import Optional
+from typing import Optional, Union, List
 from datetime import datetime
 
 
@@ -10,12 +10,13 @@ class ProductBase(BaseModel):
     specification: Optional[str] = None
     description: Optional[str] = None
     is_deleted: Optional[int] = 0
-
-
-class ProductModel(ProductBase):
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
     model_config = ConfigDict(from_attributes=True)
+
+
+class ProductModel(BaseModel):
+    data: Union[ProductBase, List[ProductBase]]
 
 
 # class ProductUpdate(BaseModel):

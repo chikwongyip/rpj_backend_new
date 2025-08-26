@@ -42,14 +42,6 @@ async def regist(user: UserCreate, db: Session = Depends(get_db)):
     db.add(new_user)
     db.commit()
     return BaseResponse.success(data={"result": "注册成功"})
-    # with get_db() as session:
-
-    #     hashed_password = hash_password(user.password)
-    #     new_user = Users(
-    #         name=user.username, hashed_password=hashed_password, email=user.email)
-    #     res = session.add(new_user)
-    #     session.commit()
-    # return res
 
 
 @router.post("/refresh_token")
