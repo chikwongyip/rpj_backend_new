@@ -1,9 +1,10 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Form
 from db.db import get_db
 from schemas.company import CompanyInfo as CompanyInfoSchema
 from models.common import BaseResponse
 from models.company import CompanyInfo as CompanyInfoModel
 from sqlalchemy.orm import Session
+from typing import Annotated
 router = APIRouter(prefix='/admin/company', tags=['企业管理'])
 
 
@@ -18,7 +19,7 @@ async def get_company_info(id: int, db: Session = Depends(get_db)):
 
 
 @router.post('/edit')
-async def edit_company_info(company: CompanyInfoModel, db: Session = Depends(get_db)):
+async def edit_company_info(company: Annotated[CompanyInfoModel, Form()], db: Session = Depends(get_db)):
 
     db_item = db.query(CompanyInfoSchema).filter_by(
         id=company.id).one_or_none()
