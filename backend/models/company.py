@@ -1,16 +1,15 @@
 from pydantic import BaseModel, HttpUrl, Field, ConfigDict
-from typing import Optional
+from typing import Optional, Annotated
 from datetime import datetime
-from fastapi import File
+from fastapi import File, Form, UploadFile
 
 
 class CompanyInfo(BaseModel):
-    id: int = Field(...)
-    name: str = Field(..., min_length=2, max_length=20)
-    description: Optional[str] = Field(
-        None, title="Company Description", max_length=255)
-    logo_url: Optional[HttpUrl] = File(None)
-    icp_number: Optional[str] = Field(None, max_length=100)
+    id: Annotated[int, Form(...)]
+    name: Annotated[str, Form()]
+    description:  Annotated[str, Form()]
+    logo_url: Annotated[UploadFile, File()]
+    icp_number: Annotated[str, Form()]
     created_at: Optional[datetime] = Field(default_factory=datetime.now)
     updated_at: Optional[datetime] = Field(default_factory=datetime.now)
     model_config = ConfigDict(from_attributes=True)

@@ -21,17 +21,17 @@ async def get_company_info(id: int, db: Session = Depends(get_db)):
 
 
 @router.post('/edit')
-async def edit_company_info(company: Annotated[CompanyInfoModel, Form()], file: UploadFile = File(...), db: Session = Depends(get_db)):
+async def edit_company_info(company: Annotated[CompanyInfoModel, Form()],  db: Session = Depends(get_db)):
 
     db_item = db.query(CompanyInfoSchema).filter_by(
         id=company.id).one_or_none()
     if not db_item:
         return BaseResponse.error(code=1, message="company id 不存在")
-    if file:
-        print(file)
+    if company.logo_url:
+        print(company.logo_url)
         oss_cleint = AliyunOSS(
             endpoint=endpoint, region=region, bucket_name=bucket_name)
-        res = oss_cleint.upload_file(router.prefix+'logo', file)
+        res = oss_cleint.upload_file(router.prefix+'logo', company.logo_url)
         db_item.logo_url = str(res.url)
     db_item.name = company.name
     db_item.description = company.description
