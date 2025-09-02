@@ -26,16 +26,18 @@ class AliyunOSS:
 
     def _generate_url(self, key: str) -> str:
         """生成标准 OSS 访问 URL"""
-        return f"https://{self.bucket_name}.{self.endpoint}/{key}"
+        return f"https://{self.bucket_name}.{self.endpoint.lstrip('https://')}/{key}"
 
     async def upload_file(self, name: str, data: bytes) -> Dict:
         """上传文件到 OSS"""
+        # print('3')
         loop = asyncio.get_event_loop()
         try:
             name = name.lstrip('/')  # 规范路径
             res = await loop.run_in_executor(
                 None, self.bucket.put_object, name, data
             )
+            print('3')
             return {
                 'url': self._generate_url(name),
                 'etag': res.etag,

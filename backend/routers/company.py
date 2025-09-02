@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from typing import Optional
 from app_config.oss_config import endpoint, region, bucket_name
 from uitls.oss import AliyunOSS
-
+import asyncio
 router = APIRouter(prefix='/admin/company', tags=['企业管理'])
 
 
@@ -30,32 +30,23 @@ async def edit_company_info(logo: Optional[UploadFile], company: CompanyInfoMode
     if not db_item:
         return BaseResponse.error(code=1, message="company id 不存在")
     if logo:
-        try:
-            # logo_url = None
-            allowed_types = ["image/jpeg", "image/png", "image/gif"]
-            if logo.content_type not in allowed_types:
-                return BaseResponse.error(code=1, message="上传文件内容不允许")
-            raw = await logo.read()
-            prefix = router.prefix.lstrip('/')
-            file_ext = os.path.splitext(logo.filename)[1]
-            filename = f"{prefix}/logo{file_ext}"
 
-            oss_client = AliyunOSS(
-                endpoint=endpoint, region=region, bucket_name=bucket_name)
+        allowed_types = ["image/jpeg", "image/png", "image/gif"]
+        if logo.content_type not in allowed_types:
+            return BaseResponse.error(code=1, message="上传文件内容不允许")
+        raw = await logo.read()
+        prefix = router.prefix.lstrip('/')
+        file_ext = os.path.splitext(logo.filename)[1]
+        filename = f"{prefix}/logo{file_ext}"
+        # res = asyncio.run(upload_oss_file(file_name=filename, data=raw))
+        oss_client = AliyunOSS(
+            endpoint=endpoint, region=region, bucket_name=bucket_name)
+        res = await oss_client.upload_file(
+            filename, data=raw)
 
-            res = await oss_client.upload_file(
-                filename, data=raw)
-
-            print(res['url'])
-            if not res['url']:
-                return BaseResponse.error(code=1, message='OSS 上传未返回有效 URL')
-            db_item.logo_url = str(res.url)
-        except Exception as e:
-            return BaseResponse.error(code=1, message=f"未知错误: {str(e)}")
-
+        db_item.logo_url = str(res.get('url'))
     db_item.name = company.name
     db_item.description = company.description
-    # db_item.logo_url = str(company.logo_url)
     db_item.icp_number = str(company.icp_number)
-    db_item.commit()
+    db.commit()
     return BaseResponse.success(data={"result": "更新成功"})
