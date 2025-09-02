@@ -1,12 +1,14 @@
-from fastapi import APIRouter, Depends, Form, File, Form, UploadFile
+import os
+from fastapi import APIRouter, Depends, Form, File, Form, UploadFile, HTTPException
 from db.db import get_db
 from schemas.company import CompanyInfo as CompanyInfoSchema
 from models.common import BaseResponse
 from models.company import CompanyInfo as CompanyInfoModel
 from sqlalchemy.orm import Session
-from typing import Annotated
+from typing import Optional
 from app_config.oss_config import endpoint, region, bucket_name
 from uitls.oss import AliyunOSS
+
 router = APIRouter(prefix='/admin/company', tags=['企业管理'])
 
 
@@ -21,18 +23,36 @@ async def get_company_info(id: int, db: Session = Depends(get_db)):
 
 
 @router.post('/edit')
-async def edit_company_info(company: Annotated[CompanyInfoModel, Form()],  db: Session = Depends(get_db)):
-
+async def edit_company_info(logo: Optional[UploadFile], company: CompanyInfoModel = Depends(CompanyInfoModel.as_form),  db: Session = Depends(get_db)):
+    # print(company.id)
     db_item = db.query(CompanyInfoSchema).filter_by(
         id=company.id).one_or_none()
     if not db_item:
         return BaseResponse.error(code=1, message="company id 不存在")
-    if company.logo_url:
-        print(company.logo_url)
-        oss_cleint = AliyunOSS(
-            endpoint=endpoint, region=region, bucket_name=bucket_name)
-        res = oss_cleint.upload_file(router.prefix+'logo', company.logo_url)
-        db_item.logo_url = str(res.url)
+    if logo:
+        try:
+            # logo_url = None
+            allowed_types = ["image/jpeg", "image/png", "image/gif"]
+            if logo.content_type not in allowed_types:
+                return BaseResponse.error(code=1, message="上传文件内容不允许")
+            raw = await logo.read()
+            prefix = router.prefix.lstrip('/')
+            file_ext = os.path.splitext(logo.filename)[1]
+            filename = f"{prefix}/logo{file_ext}"
+
+            oss_client = AliyunOSS(
+                endpoint=endpoint, region=region, bucket_name=bucket_name)
+
+            res = await oss_client.upload_file(
+                filename, data=raw)
+
+            print(res['url'])
+            if not res['url']:
+                return BaseResponse.error(code=1, message='OSS 上传未返回有效 URL')
+            db_item.logo_url = str(res.url)
+        except Exception as e:
+            return BaseResponse.error(code=1, message=f"未知错误: {str(e)}")
+
     db_item.name = company.name
     db_item.description = company.description
     # db_item.logo_url = str(company.logo_url)

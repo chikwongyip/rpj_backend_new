@@ -1,83 +1,82 @@
-# -*- coding: utf-8 -*-
 import oss2
-from oss2.credentials import EnvironmentVariableCredentialsProvider
-from itertools import islice
-import os
 import logging
-
-# 设置Endpoint和Region
+from typing import List, Dict
+from itertools import islice
+import asyncio
+import os
+env_dist = os.environ
 
 
 class AliyunOSS:
-    def __init__(self, endpoint, bucket_name, region):
-        self.endpoint = endpoint
-        auth = oss2.ProviderAuthV4(EnvironmentVariableCredentialsProvider())
+    def __init__(
+        self,
+
+        endpoint: str,
+        bucket_name: str,
+        region: str
+    ):
+        access_key_id = env_dist.get('OSS_ACCESS_KEY_ID')
+        access_key_secret = env_dist.get('OSS_ACCESS_KEY_SECRET')
+        self.auth = oss2.Auth(access_key_id, access_key_secret)
         self.bucket = oss2.Bucket(
-            auth, endpoint=endpoint, bucket_name=bucket_name, region=region)
+            self.auth, endpoint=endpoint, bucket_name=bucket_name, region=region
+        )
+        self.bucket_name = bucket_name
+        self.endpoint = endpoint
 
-    def upload_file(self, name, data):
+    def _generate_url(self, key: str) -> str:
+        """生成标准 OSS 访问 URL"""
+        return f"https://{self.bucket_name}.{self.endpoint}/{key}"
+
+    async def upload_file(self, name: str, data: bytes) -> Dict:
+        """上传文件到 OSS"""
+        loop = asyncio.get_event_loop()
         try:
-            res = self.bucket.put_object(name, data)
-            return {'url': self.endpoint + name, 'etag': res.etag, 'key': name}
+            name = name.lstrip('/')  # 规范路径
+            res = await loop.run_in_executor(
+                None, self.bucket.put_object, name, data
+            )
+            return {
+                'url': self._generate_url(name),
+                'etag': res.etag,
+                'key': name
+            }
         except oss2.exceptions.OssError as e:
-            logging.error(f"Failed to put file")
+            logging.error(f"OSS Error: {e.message}")
+            raise RuntimeError(f"文件上传失败: {e.message}")
 
-    def list_directories(self, prefix='', delimiter='/'):
+    async def list_directories(self, prefix: str = '', delimiter: str = '/') -> List[str]:
+        """列举目录"""
+        prefix = prefix.lstrip('/')
         result = self.bucket.list_objects_v2(
-            prefix=prefix, delimiter=delimiter)
-        # print(result.prefix_list)
-        directories = []
+            prefix=prefix, delimiter=delimiter
+        )
+        return [cp.prefix for cp in result.prefix_list]
 
-        # 获取当前层级的目录
-        for common_prefix in result.prefix_list:
-            directories.append(common_prefix)
-        return directories
-
-    def list_objects(self):
+    async def list_objects(self, limit: int = 10) -> List[Dict]:
+        """列举对象"""
         try:
-            objects = list(islice(oss2.ObjectIterator(self.bucket), 10))
-            data = []
-            for obj in objects:
-                # key = str(obj.key)
-
-                if not obj.key.endswith('/'):
-                    item = {'url': self.endpoint + obj.key,
-                            'etag': obj.etag, 'key': obj.key}
-                    data.append(item)
-            return data
+            iterator = oss2.ObjectIterator(self.bucket)
+            objects = list(islice(iterator, limit))
+            return [
+                {
+                    'url': self._generate_url(obj.key),
+                    'etag': obj.etag,
+                    'key': obj.key
+                }
+                for obj in objects if not obj.key.endswith('/')
+            ]
         except oss2.exceptions.OssError as e:
-            logging.error(f"Failed to list objects: {e}")
+            logging.error(f"列举对象失败: {e}")
+            raise
 
-    def delete_object(self, key):
+    async def delete_object(self, key: str) -> bool:
+        """删除对象"""
         try:
-            self.bucket.delete_object(key)
+            await asyncio.get_event_loop().run_in_executor(
+                None, self.bucket.delete_object, key.lstrip('/')
+            )
+            return True
         except oss2.exceptions.OssError as e:
-            logging.error(f"Failed to delete objects: {e}")
-
-
-if __name__ == "__main__":
-    # 配置日志
-    logging.basicConfig(level=logging.INFO,
-                        format='%(asctime)s - %(levelname)s - %(message)s')
-
-    # 检查环境变量是否已设置
-    required_env_vars = ['OSS_ACCESS_KEY_ID', 'OSS_ACCESS_KEY_SECRET']
-    # print(os.environ)
-    for var in required_env_vars:
-
-        if var not in os.environ:
-            logging.error(f"Environment variable {var} is not set.")
-            exit(1)
-    auth = oss2.ProviderAuthV4(EnvironmentVariableCredentialsProvider())
-    endpoint = "https://oss-cn-shanghai.aliyuncs.com"
-    region = "cn-shanghai"
-    oss_client = AliyunOSS(
-        endpoint=endpoint, bucket_name='rpjtech', region=region)
-    file_list = oss_client.list_objects()
-    print(file_list)
-# bucket_name = generate_unique_bucket_name()
-# bucket = oss2.Bucket(auth, endpoint, 'rpjtech', region=region)
-# directories = list_directories(bucket)
-# res = upload_file(bucket, 'Tencent/brand/23411.txt', data=b'Hello OSS')
-# print(res)
-# print(directories)
+            logging.error(f"删除失败: {e}")
+            return False
