@@ -1,5 +1,6 @@
 import os
-from fastapi import APIRouter, Depends, Form, File, Form, UploadFile, HTTPException
+from datetime import datetime
+from fastapi import APIRouter, Depends, UploadFile
 from db.db import get_db
 from schemas.company import CompanyInfo as CompanyInfoSchema
 from models.common import BaseResponse
@@ -8,7 +9,6 @@ from sqlalchemy.orm import Session
 from typing import Optional
 from app_config.oss_config import endpoint, region, bucket_name
 from uitls.oss import AliyunOSS
-import asyncio
 router = APIRouter(prefix='/admin/company', tags=['企业管理'])
 
 
@@ -48,5 +48,6 @@ async def edit_company_info(logo: Optional[UploadFile], company: CompanyInfoMode
     db_item.name = company.name
     db_item.description = company.description
     db_item.icp_number = str(company.icp_number)
+    db_item.updated_at = datetime.now()
     db.commit()
     return BaseResponse.success(data={"result": "更新成功"})

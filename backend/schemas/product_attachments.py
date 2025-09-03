@@ -12,3 +12,5 @@ class ProductAttachments(Base, BaseMixin):
     original_name = Column(String(255))
     file_type = Column(String(20))
     size = Column(Integer)
+    key = Column(String)
+    file_id = Column(String)

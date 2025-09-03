@@ -11,3 +11,5 @@ class ProductImages(Base, BaseMixin):
     url = Column(String(255))
     sort_order = Column(Integer)
     is_thumbnail = Column(Integer)
+    key = Column(String)
+    file_id = Column(String)

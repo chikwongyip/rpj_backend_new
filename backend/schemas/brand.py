@@ -14,3 +14,5 @@ class Brands(Base, BaseMixin):
     created_at = Column(DateTime, default=datetime.now)
     updated_at = Column(DateTime, default=datetime.now)
     is_deleted = Column(Integer, default=0)
+    key = Column(String)
+    file_id = Column(String)

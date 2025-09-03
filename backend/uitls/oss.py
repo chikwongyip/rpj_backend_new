@@ -4,6 +4,8 @@ from typing import List, Dict
 from itertools import islice
 import asyncio
 import os
+import uuid
+from app_config.oss_config import endpoint, region, bucket_name
 env_dist = os.environ
 
 
@@ -82,3 +84,18 @@ class AliyunOSS:
         except oss2.exceptions.OssError as e:
             logging.error(f"删除失败: {e}")
             return False
+
+
+async def upload_oss_file(filepath, ext, data, id=None):
+    if not id:
+        file_id = str(uuid.uuid4())
+    else:
+        file_id = id
+    filename = f"{filepath}{file_id}{ext}"
+    # filepath+file_id+'.'+ext
+    oss_client = AliyunOSS(
+        endpoint=endpoint, region=region, bucket_name=bucket_name)
+    res = await oss_client.upload_file(
+        filename, data=data)
+    res['file_id'] = file_id
+    return res
