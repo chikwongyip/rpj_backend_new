@@ -12,3 +12,5 @@ class CompanyInfo(Base):
     icp_number = Column(String(50))
     created_at = Column(DateTime)
     updated_at = Column(DateTime)
+    key = Column(String(100))
+    file_id = Column(String(100))

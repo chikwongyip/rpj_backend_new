@@ -4,7 +4,8 @@ from typing import List, Dict
 from itertools import islice
 import asyncio
 import os
-import uuid
+# import uuid
+import time
 from app_config.oss_config import endpoint, region, bucket_name
 env_dist = os.environ
 
@@ -32,22 +33,23 @@ class AliyunOSS:
 
     async def upload_file(self, name: str, data: bytes) -> Dict:
         """上传文件到 OSS"""
-        # print('3')
+
         loop = asyncio.get_event_loop()
         try:
             name = name.lstrip('/')  # 规范路径
+            print(name)
             res = await loop.run_in_executor(
                 None, self.bucket.put_object, name, data
             )
-            print('3')
+
             return {
                 'url': self._generate_url(name),
                 'etag': res.etag,
                 'key': name
             }
         except oss2.exceptions.OssError as e:
-            logging.error(f"OSS Error: {e.message}")
-            raise RuntimeError(f"文件上传失败: {e.message}")
+            print(f"OSS Error: {e.message}")
+            # raise RuntimeError(f"文件上传失败: {e.message}")
 
     async def list_directories(self, prefix: str = '', delimiter: str = '/') -> List[str]:
         """列举目录"""
@@ -88,14 +90,17 @@ class AliyunOSS:
 
 async def upload_oss_file(filepath, ext, data, id=None):
     if not id:
-        file_id = str(uuid.uuid4())
+        file_id = str(int(time.time() * 1000))
     else:
         file_id = id
-    filename = f"{filepath}{file_id}{ext}"
+    filename = f"{filepath}/{file_id}{ext}"
+    print(filename)
     # filepath+file_id+'.'+ext
     oss_client = AliyunOSS(
         endpoint=endpoint, region=region, bucket_name=bucket_name)
     res = await oss_client.upload_file(
         filename, data=data)
+
     res['file_id'] = file_id
+    print(res)
     return res

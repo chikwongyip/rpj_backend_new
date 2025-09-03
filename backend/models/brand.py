@@ -1,6 +1,7 @@
 from fastapi import Form
 from pydantic import BaseModel, ConfigDict
 from typing import Optional
+from datetime import datetime
 
 
 class BrandBase(BaseModel):
@@ -31,8 +32,10 @@ class BrandCreate(BrandBase):
             is_deleted=is_deleted
         )
 
+# update 需要传入delete
 
-class BrandUpdate(BaseModel):
+
+class BrandUpdate(BrandBase):
     id: int
     model_config = ConfigDict(from_attributes=True)
 
@@ -52,3 +55,10 @@ class BrandUpdate(BaseModel):
             logo_url=logo_url,
             is_deleted=is_deleted
         )
+
+
+class BrandResponse(BrandBase):
+    id: int
+    created_at: Optional[datetime]
+    updated_at: Optional[datetime]
+    model_config = ConfigDict(from_attributes=True)

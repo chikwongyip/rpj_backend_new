@@ -2,7 +2,7 @@ import os
 from datetime import datetime
 from fastapi import APIRouter, Depends, UploadFile
 from db.db import get_db
-from models.brand import BrandCreate, BrandUpdate
+from models.brand import BrandCreate, BrandUpdate, BrandResponse
 from schemas.brand import Brands
 from models.common import BaseResponse
 from typing import Optional
@@ -19,7 +19,7 @@ async def get_brands(id: Optional[int] = None, db: Session = Depends(get_db)):
     else:
         db_item = db.query(Brands).all()
     if db_item:
-        modelRes = [BrandCreate.model_validate(i) for i in db_item]
+        modelRes = [BrandResponse.model_validate(i) for i in db_item]
         return BaseResponse.success(data=modelRes)
     else:
         return BaseResponse.error(code=1, message="没有查到数据")
