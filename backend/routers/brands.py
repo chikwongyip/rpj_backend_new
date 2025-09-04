@@ -7,7 +7,9 @@ from schemas.brand import Brands
 from models.common import BaseResponse
 from typing import Optional
 from sqlalchemy.orm import Session
-from uitls.oss import upload_oss_file
+from uitls.oss import AliyunOSS
+from app_config.oss_config import endpoint, region, bucket_name
+from uitls.handle_filename import generate_filename
 router = APIRouter(prefix='/admin/brand', tags=['品牌管理'])
 
 
@@ -28,10 +30,15 @@ async def get_brands(id: Optional[int] = None, db: Session = Depends(get_db)):
 @router.post('/add')
 async def add_brand(logo: Optional[UploadFile], brand: BrandCreate = Depends(BrandCreate.as_form), db: Session = Depends(get_db)):
     if logo:
-        raw = logo.read()
-        prefix = router.prefix.lstrip('/')
-        file_ext = os.path.splitext(logo.filename)[1]
-        res = await upload_oss_file(filepath=prefix, ext=file_ext, data=raw)
+        raw = await logo.read()
+        # 获取当前路由位置作为文件路径
+        full_name = generate_filename(
+            prefix=router.prefix, filename=logo.filename, name=None)
+        print(full_name)
+        oss_client = AliyunOSS(
+            endpoint=endpoint, region=region, bucket_name=bucket_name)
+        res = await oss_client.upload_file(
+            name=full_name, data=raw)
     brand = Brands(
         name=brand.name,
         description=brand.description,
@@ -40,7 +47,7 @@ async def add_brand(logo: Optional[UploadFile], brand: BrandCreate = Depends(Bra
         updated_at=datetime.now(),
         is_deleted=brand.is_deleted,
         key=res.get('key') if res.get('key') else '',
-        file_id=res.get('file_id') if res.get('file_id') else ''
+        file_id=res.get('etag') if res.get('etag') else ''
 
     )
     db.add(brand)

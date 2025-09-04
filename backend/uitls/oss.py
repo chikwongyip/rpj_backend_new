@@ -4,10 +4,10 @@ from typing import List, Dict
 from itertools import islice
 import asyncio
 import os
-# import uuid
-import time
-from app_config.oss_config import endpoint, region, bucket_name
 env_dist = os.environ
+
+ACCESS_KEY_ID = env_dist.get('OSS_ACCESS_KEY_ID')
+ACCESS_KEY_SECRET = env_dist.get('OSS_ACCESS_KEY_SECRET')
 
 
 class AliyunOSS:
@@ -18,9 +18,7 @@ class AliyunOSS:
         bucket_name: str,
         region: str
     ):
-        access_key_id = env_dist.get('OSS_ACCESS_KEY_ID')
-        access_key_secret = env_dist.get('OSS_ACCESS_KEY_SECRET')
-        self.auth = oss2.Auth(access_key_id, access_key_secret)
+        self.auth = oss2.Auth(ACCESS_KEY_ID, ACCESS_KEY_SECRET)
         self.bucket = oss2.Bucket(
             self.auth, endpoint=endpoint, bucket_name=bucket_name, region=region
         )
@@ -33,23 +31,20 @@ class AliyunOSS:
 
     async def upload_file(self, name: str, data: bytes) -> Dict:
         """上传文件到 OSS"""
-
         loop = asyncio.get_event_loop()
         try:
             name = name.lstrip('/')  # 规范路径
-            print(name)
             res = await loop.run_in_executor(
                 None, self.bucket.put_object, name, data
             )
-
             return {
                 'url': self._generate_url(name),
                 'etag': res.etag,
                 'key': name
             }
         except oss2.exceptions.OssError as e:
-            print(f"OSS Error: {e.message}")
-            # raise RuntimeError(f"文件上传失败: {e.message}")
+            logging.error(f"OSS Error: {e.message}")
+            raise RuntimeError(f"文件上传失败: {e.message}")
 
     async def list_directories(self, prefix: str = '', delimiter: str = '/') -> List[str]:
         """列举目录"""
@@ -86,21 +81,3 @@ class AliyunOSS:
         except oss2.exceptions.OssError as e:
             logging.error(f"删除失败: {e}")
             return False
-
-
-async def upload_oss_file(filepath, ext, data, id=None):
-    if not id:
-        file_id = str(int(time.time() * 1000))
-    else:
-        file_id = id
-    filename = f"{filepath}/{file_id}{ext}"
-    print(filename)
-    # filepath+file_id+'.'+ext
-    oss_client = AliyunOSS(
-        endpoint=endpoint, region=region, bucket_name=bucket_name)
-    res = await oss_client.upload_file(
-        filename, data=data)
-
-    res['file_id'] = file_id
-    print(res)
-    return res

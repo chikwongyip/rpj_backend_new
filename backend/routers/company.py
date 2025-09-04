@@ -8,7 +8,8 @@ from models.company import CompanyUpdate, CompanyResponse
 from sqlalchemy.orm import Session
 from typing import Optional
 from app_config.oss_config import endpoint, region, bucket_name
-from uitls.oss import AliyunOSS, upload_oss_file
+from uitls.oss import AliyunOSS
+from uitls.handle_filename import generate_filename
 router = APIRouter(prefix='/admin/company', tags=['企业管理'])
 
 
@@ -37,17 +38,22 @@ async def edit_company_info(logo: Optional[UploadFile], company: CompanyUpdate =
             return BaseResponse.error(code=1, message="上传文件内容不允许")
         raw = await logo.read()
         # 获取当前路由位置作为文件路径
-        prefix = router.prefix.lstrip('/')
-        # 获取文件类型
-        file_ext = os.path.splitext(logo.filename)[1]
-        # 获取文件id
-        file_id = 'logo'
-        res = await upload_oss_file(
-            filepath=prefix, ext=file_ext, data=raw, id=file_id)
+        # prefix = router.prefix.lstrip('/')
+        # file_ext = os.path.splitext(logo.filename)[1]
+        oss_client = AliyunOSS(
+            endpoint=endpoint, region=region, bucket_name=bucket_name)
+
+        # name = 'logo'
+        full_name = generate_filename(prefix=router.prefix,
+                                      filename=logo.filename, name='logo')
+        print(full_name)
+        res = await oss_client.upload_file(
+            name=full_name, data=raw)
+
         db_item.logo_url = str(res.get('url')) if res.get('url') else ''
         db_item.key = str(
             res.get('key')) if res.get('key') else ''
-        db_item.file_id = str(res.get('file_id')) if res.get('file_id') else ''
+        db_item.file_id = str(res.get('etag')) if res.get('etag') else ''
 
     db_item.name = company.name
     db_item.description = company.description
