@@ -10,6 +10,7 @@ from fastapi.responses import JSONResponse
 
 async def jwt_middleware(request: Request, call_next):
     # 跳过不需要验证的路由
+    return await call_next(request)
     if request.url.path in ["/login", "/docs", "/openapi.json", "/admin/company/info", "/admin/company/edit", "/admin/brand/add"]:
         return await call_next(request)
 

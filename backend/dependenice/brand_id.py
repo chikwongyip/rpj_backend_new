@@ -4,12 +4,12 @@ from db.db import get_db
 from sqlalchemy.orm import Session
 from schemas.brand import Brands
 from models.common import BaseResponse
-from models.product import ProductModel, ProductBase
+from models.product import ProductBaseResponse, ProductBaseListResponse
 
 
-async def check_brand_ids(product_input: ProductModel, db: Session = Depends(get_db)):
+async def check_brand_ids(product_input: ProductBaseListResponse, db: Session = Depends(get_db)):
     brand_ids = (
-        [product_input.data.brand_id] if isinstance(product_input.data, ProductBase)
+        [product_input.data.brand_id] if isinstance(product_input.data, ProductBaseResponse)
         else [i.brand_id for i in product_input.data]
     )
     brands = db.query(Brands).filter(

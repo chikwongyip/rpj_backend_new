@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends
 from db.db import get_db
 from models.common import BaseResponse
 from sqlalchemy.orm import Session
-from models.product import ProductModel, ProductBase
+from models.product import ProductBaseResponse, ProductAdd, ProductBase, ProductUpate, ProductUpdateList
 from schemas.product import Products
 from dependenice.brand_id import check_brand_ids
 router = APIRouter(prefix='/admin/product', tags=['产品管理'])
@@ -16,13 +16,13 @@ async def get_product_list(id: int = None, db: Session = Depends(get_db)):
     else:
         db_item = db.query(Products).all()
     if db_item:
-        res = [ProductModel.model_validate(i) for i in db_item]
+        res = [ProductBaseResponse.model_validate(i) for i in db_item]
         return BaseResponse.success(data=res)
     return BaseResponse.error(code=1, message="没有找到产品")
 
 
 @router.post('/add')
-async def add_product(product: ProductModel = Depends(check_brand_ids), db: Session = Depends(get_db)):
+async def add_product(product: ProductAdd = Depends(check_brand_ids), db: Session = Depends(get_db)):
     if product.code:
         return product
     if isinstance(product.data, ProductBase):
@@ -54,11 +54,11 @@ async def del_product(id: int, db: Session = Depends(get_db)):
 
 
 @router.post('/update')
-async def update_product(product: ProductModel = Depends(check_brand_ids), db: Session = Depends(get_db)):
+async def update_product(product: ProductUpdateList = Depends(check_brand_ids), db: Session = Depends(get_db)):
     if product.code:
         return product
     ids = (
-        [product.data.id] if isinstance(product.data, ProductBase)
+        [product.data.id] if isinstance(product.data, ProductUpate)
         else [i.id for i in product.data]
     )
     db_item = db.query(Products).filter(
