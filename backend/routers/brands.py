@@ -76,12 +76,16 @@ async def update_brand(logo: Optional[UploadFile], brand: BrandUpdate, db: Sessi
         return BaseResponse.error(code=1, message="品牌不存在")
 
     if logo:
-        raw = logo.read()
-        prefix = router.prefix.lstrip('/')
-        file_ext = os.path.splitext(logo.filename)[1]
-        file_id = db_item.file_id if db_item.file_id != '' else None
-        res = await upload_oss_file(filepath=prefix, ext=file_ext,
-                                    data=raw, file_id=file_id)
+        allowed_types = ["image/jpeg", "image/png", "image/gif"]
+        if logo.content_type not in allowed_types:
+            return BaseResponse.error(code=1, message="上传文件内容不允许")
+        raw = await logo.read()
+        oss_client = AliyunOSS(
+            endpoint=endpoint, region=region, bucket_name=bucket_name)
+        full_name = generate_filename(prefix=router.prefix,
+                                      filename=logo.filename, name='logo')
+        res = await oss_client.upload_file(
+            name=full_name, data=raw)
         db_item.logo_url = res.get('url') if res.get('url') else ''
         db_item.key = res.get('key') if res.get('key') else ''
         db_item.file_id = res.get('file_id') if res.get('file_id') else ''

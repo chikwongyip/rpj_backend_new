@@ -51,3 +51,13 @@ class ProductAttachmentsID(BaseModel):
 class ProductAttachmentResponse(BaseModel):
     data: Union[ProductAttachmentBaseResponse,
                 List[ProductAttachmentBaseResponse]]
+
+
+class ProductAttachmentUpdate(BaseModel):
+    id: Optional[int] = None
+    product_id: int = Depends(check_attachment_product_ids)
+    model_config = ConfigDict(from_attributes=True)
+
+    @classmethod
+    def as_form(cls, id: int = Form(...), product_id: int = Form(...)):
+        return cls(id=id, product_id=product_id)

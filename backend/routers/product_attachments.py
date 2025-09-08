@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, UploadFile
 from db.db import get_db
 from models.common import BaseResponse
 from sqlalchemy.orm import Session
-from models.product_attachments import ProductAttachmentsModel, ProductAttachmentsID, ProductAttachmentsBase
+from models.product_attachments import ProductAttachmentsID, ProductAttachmentsBase, ProductAttachmentUpdate, ProductAttachmentResponse
 from schemas.product_attachments import ProductAttachments
 from dependenice.product_id import check_attachment_product_ids
 from app_config.oss_config import endpoint, region, bucket_name
@@ -76,7 +76,7 @@ async def delete_attachements(items: ProductAttachmentsID, db: Session = Depends
 
 
 @router.post('/update')
-async def update_attachment(items: ProductAttachmentsModel = Depends(check_attachment_product_ids), db: Session = Depends(get_db)):
+async def update_attachment(items: ProductAttachmentUpdate = Depends(ProductAttachmentUpdate.as_form), db: Session = Depends(get_db)):
     if items.code:
         return items
     ids = (
@@ -104,7 +104,8 @@ async def get_attachments(product_id: int = None, db: Session = Depends(get_db))
     else:
         db_item = db.query(ProductAttachments).all()
     if db_item:
-        modelRes = [ProductAttachmentsBase.model_validate(i) for i in db_item]
+        modelRes = [ProductAttachmentResponse.model_validate(
+            i) for i in db_item]
         return BaseResponse.success(data=modelRes)
     else:
         return BaseResponse.error(code=1, message="找不到数据")
