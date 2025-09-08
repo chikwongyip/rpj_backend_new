@@ -46,7 +46,7 @@ async def edit_company_info(logo: Optional[UploadFile], company: CompanyUpdate =
         # name = 'logo'
         full_name = generate_filename(prefix=router.prefix,
                                       filename=logo.filename, name='logo')
-        print(full_name)
+        # print(full_name)
         res = await oss_client.upload_file(
             name=full_name, data=raw)
 

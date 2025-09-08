@@ -1,20 +1,66 @@
 import datetime
-from fastapi import APIRouter, Depends
+import mimetypes
+from fastapi import APIRouter, Depends, UploadFile
 from db.db import get_db
 from models.common import BaseResponse
 from sqlalchemy.orm import Session
 from models.product_attachments import ProductAttachmentsModel, ProductAttachmentsID, ProductAttachmentsBase
 from schemas.product_attachments import ProductAttachments
 from dependenice.product_id import check_attachment_product_ids
+from app_config.oss_config import endpoint, region, bucket_name
+from uitls.oss import AliyunOSS
+from uitls.handle_filename import generate_filename
 router = APIRouter(prefix='/admin/product_attachments', tags=['产品附件管理'])
+ALLOWED_MIME_TYPES = {
+    "application/vnd.ms-powerpoint",
+    "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+    "application/msword",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "application/vnd.ms-excel",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    "application/pdf"
+}
+
+# 允许的扩展名
+ALLOWED_EXTENSIONS = {".ppt", ".pptx",
+                      ".doc", ".docx", ".xls", ".xlsx", ".pdf"}
+
+
+def validate_file(file: UploadFile) -> bool:
+    # 检查扩展名
+    extension = f".{file.filename.split('.')[-1].lower()}"
+    if extension not in ALLOWED_EXTENSIONS:
+        return False
+
+    # 检查 MIME 类型
+    content_type = file.content_type
+    if content_type not in ALLOWED_MIME_TYPES:
+        # 如果 MIME 类型不可靠，尝试根据扩展名推断
+        guessed_type, _ = mimetypes.guess_type(file.filename)
+        if guessed_type not in ALLOWED_MIME_TYPES:
+            return False
+
+    return True
 
 
 @router.post('/add')
-async def add_attachements(items: ProductAttachmentsModel = Depends(check_attachment_product_ids), db: Session = Depends(get_db)):
+async def add_attachements(files: list[UploadFile], items: ProductAttachmentsBase = Depends(ProductAttachmentsBase.as_form), db: Session = Depends(get_db)):
     if items.code:
         return items
-    attachments = [ProductAttachments(product_id=i.product_id, url=str(i.url),
-                                      original_name=i.original_name, file_type=i.file_type, size=i.size) for i in items.data]
+    oss_client = AliyunOSS(
+        endpoint=endpoint, region=region, bucket_name=bucket_name)
+
+    attachments = []
+    for file in files:
+        data = await file.read()
+        full_name = generate_filename(prefix=router.prefix,
+                                      filename=file.filename)
+        # print(full_name)
+        res = await oss_client.upload_file(
+            name=full_name, data=data)
+        attachment = ProductAttachments(product_id=items.product_id, url=str(res.get('url')) if res.get('url') else '',
+                                        original_name=file.filename, file_type=file.content_type, size=file.size, created_at=datetime.now(), updated_at=datetime.now())
+        attachments.append(attachment)
 
     db.add_all(attachments)
     db.commit()

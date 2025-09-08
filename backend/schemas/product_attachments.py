@@ -1,6 +1,6 @@
 from sqlalchemy.orm import declarative_base
 from schemas.base import BaseMixin
-from sqlalchemy import String, Column, Integer
+from sqlalchemy import String, Column, Integer, DateTime
 
 Base = declarative_base()
 
@@ -14,3 +14,5 @@ class ProductAttachments(Base, BaseMixin):
     size = Column(Integer)
     key = Column(String)
     file_id = Column(String)
+    created_at = Column(DateTime)
+    updated_at = Column(DateTime)
