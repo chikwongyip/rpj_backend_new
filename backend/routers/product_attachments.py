@@ -1,12 +1,12 @@
-import datetime
+from datetime import datetime
 import mimetypes
 from fastapi import APIRouter, Depends, UploadFile
+from typing import Annotated
 from db.db import get_db
 from models.common import BaseResponse
 from sqlalchemy.orm import Session
-from models.product_attachments import ProductAttachmentsID, ProductAttachmentsBase, ProductAttachmentUpdate, ProductAttachmentResponse
+from models.product_attachments import ProductAttachmentsID, ProductAttachmentsBase, ProductAttachmentUpdate, ProductAttachmentResponse, ProductAttachmentCreate
 from schemas.product_attachments import ProductAttachments
-from dependenice.product_id import check_attachment_product_ids
 from app_config.oss_config import endpoint, region, bucket_name
 from uitls.oss import AliyunOSS
 from uitls.handle_filename import generate_filename
@@ -44,26 +44,27 @@ def validate_file(file: UploadFile) -> bool:
 
 
 @router.post('/add')
-async def add_attachements(files: list[UploadFile], items: ProductAttachmentsBase = Depends(ProductAttachmentsBase.as_form), db: Session = Depends(get_db)):
-    if items.code:
-        return items
-    oss_client = AliyunOSS(
-        endpoint=endpoint, region=region, bucket_name=bucket_name)
+async def add_attachements(items: Annotated[ProductAttachmentCreate, Depends()], files: UploadFile, db: Session = Depends(get_db)):
+    # if items.get('code'):
+    #     return items
 
-    attachments = []
-    for file in files:
-        data = await file.read()
-        full_name = generate_filename(prefix=router.prefix,
-                                      filename=file.filename)
-        # print(full_name)
-        res = await oss_client.upload_file(
-            name=full_name, data=data)
-        attachment = ProductAttachments(product_id=items.product_id, url=str(res.get('url')) if res.get('url') else '',
-                                        original_name=file.filename, file_type=file.content_type, size=file.size, created_at=datetime.now(), updated_at=datetime.now())
-        attachments.append(attachment)
+    # oss_client = AliyunOSS(
+    #     endpoint=endpoint, region=region, bucket_name=bucket_name)
 
-    db.add_all(attachments)
-    db.commit()
+    # attachments = []
+    # for file in files:
+    #     data = await file.read()
+    #     full_name = generate_filename(prefix=router.prefix,
+    #                                   filename=file.filename)
+    #     # print(full_name)
+    #     res = await oss_client.upload_file(
+    #         name=full_name, data=data)
+    #     attachment = ProductAttachments(product_id=items.product_id, url=str(res.get('url')) if res.get('url') else '',
+    #                                     original_name=file.filename, file_type=file.content_type, size=file.size, created_at=datetime.now(), updated_at=datetime.now())
+    #     attachments.append(attachment)
+
+    # db.add_all(attachments)
+    # db.commit()
     return BaseResponse.success(data={"result": "新增成功"})
 
 
