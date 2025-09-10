@@ -9,22 +9,12 @@ from models.common import BaseResponse
 
 
 async def check_product_id(product_id: int = Form(...), db: Session = Depends(get_db)):
-    # product_ids = (
-    #     [image_input.data.product_id] if isinstance(image_input.data, ProductImageBase)
-    #     else [image.product_id for image in image_input.data]
-    # )filter_by(id=id).first()
     products = db.query(Products).filter_by(id=product_id).first()
-    # found_ids = {product.id for product in products}
-    # missing_ids = set(product_ids) - found_ids
     if not products:
-        # print('1')
-
+        # return BaseResponse.error(code=1, message=f"Product ID {product_id} does not exist")
         raise HTTPException(
             status_code=400, detail=f"Product ID {product_id} does not exist")
     return product_id
-    # if missing_ids:
-    #     return BaseResponse.error(code=1, message=f"Product id {missing_ids} Not Found")
-    # return image_input
 
 
 # async def check_attachment_product_ids(attachment_input: ProductAttachmentsBase, db: Session = Depends(get_db)):

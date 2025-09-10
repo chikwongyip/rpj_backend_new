@@ -1,15 +1,16 @@
 from datetime import datetime
 import mimetypes
-from fastapi import APIRouter, Depends, UploadFile
-from typing import Annotated
+from fastapi import APIRouter, Depends, UploadFile, Form
+from typing import Annotated, List
 from db.db import get_db
 from models.common import BaseResponse
 from sqlalchemy.orm import Session
-from models.product_attachments import ProductAttachmentsID, ProductAttachmentsBase, ProductAttachmentUpdate, ProductAttachmentResponse, ProductAttachmentCreate
+from models.product_attachments import ProductAttachmentsID, ProductAttachmentsBase, ProductAttachmentUpdate, ProductAttachmentBaseResponse
 from schemas.product_attachments import ProductAttachments
 from app_config.oss_config import endpoint, region, bucket_name
 from uitls.oss import AliyunOSS
 from uitls.handle_filename import generate_filename
+from dependenice.product_id_check import check_product_id
 router = APIRouter(prefix='/admin/product_attachments', tags=['产品附件管理'])
 ALLOWED_MIME_TYPES = {
     "application/vnd.ms-powerpoint",
@@ -44,28 +45,37 @@ def validate_file(file: UploadFile) -> bool:
 
 
 @router.post('/add')
-async def add_attachements(items: Annotated[ProductAttachmentCreate, Depends()], files: UploadFile, db: Session = Depends(get_db)):
-    # if items.get('code'):
-    #     return items
+async def add_attachements(files: List[UploadFile], product_id: Annotated[int, Depends(check_product_id)],  db: Session = Depends(get_db)):
+    oss_client = AliyunOSS(
+        endpoint=endpoint, region=region, bucket_name=bucket_name)
+    if files:
 
-    # oss_client = AliyunOSS(
-    #     endpoint=endpoint, region=region, bucket_name=bucket_name)
+        attachments = []
+        for file in files:
+            data = await file.read()
+            full_name = generate_filename(prefix=router.prefix,
+                                          filename=file.filename)
+            # print(full_name)
+            res = await oss_client.upload_file(
+                name=full_name, data=data)
+            attachment = ProductAttachments(product_id=product_id,
+                                            url=str(res.get('url')) if res.get(
+                                                'url') else '',
+                                            original_name=file.filename,
+                                            file_type=file.content_type,
+                                            size=file.size if file.size else 0,
+                                            created_at=datetime.now(),
+                                            updated_at=datetime.now(),
+                                            key=res.get('key') if res.get(
+                                                'key') else '',
+                                            file_id=res.get('etag') if res.get('etag') else '')
+            attachments.append(attachment)
 
-    # attachments = []
-    # for file in files:
-    #     data = await file.read()
-    #     full_name = generate_filename(prefix=router.prefix,
-    #                                   filename=file.filename)
-    #     # print(full_name)
-    #     res = await oss_client.upload_file(
-    #         name=full_name, data=data)
-    #     attachment = ProductAttachments(product_id=items.product_id, url=str(res.get('url')) if res.get('url') else '',
-    #                                     original_name=file.filename, file_type=file.content_type, size=file.size, created_at=datetime.now(), updated_at=datetime.now())
-    #     attachments.append(attachment)
-
-    # db.add_all(attachments)
-    # db.commit()
-    return BaseResponse.success(data={"result": "新增成功"})
+        db.add_all(attachments)
+        db.commit()
+        return BaseResponse.success(data={"result": "新增成功"})
+    else:
+        return BaseResponse.error(code=1, message="没有上传附件")
 
 
 @router.post('/delete')
@@ -105,7 +115,9 @@ async def get_attachments(product_id: int = None, db: Session = Depends(get_db))
     else:
         db_item = db.query(ProductAttachments).all()
     if db_item:
-        modelRes = [ProductAttachmentResponse.model_validate(
+        for i in db_item:
+            print(i)
+        modelRes = [ProductAttachmentBaseResponse.model_validate(
             i) for i in db_item]
         return BaseResponse.success(data=modelRes)
     else:

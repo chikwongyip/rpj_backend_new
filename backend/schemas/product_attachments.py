@@ -7,6 +7,7 @@ Base = declarative_base()
 
 class ProductAttachments(Base, BaseMixin):
     __tablename__ = 'product_attachments'
+    id = Column(Integer, primary_key=True)
     product_id = Column(Integer)
     url = Column(String(255))
     original_name = Column(String(255))
@@ -14,5 +15,6 @@ class ProductAttachments(Base, BaseMixin):
     size = Column(Integer)
     key = Column(String)
     file_id = Column(String)
+    is_deleted = Column(Integer)
     created_at = Column(DateTime)
     updated_at = Column(DateTime)

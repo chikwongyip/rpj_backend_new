@@ -16,36 +16,14 @@ async def get_file_size(file: UploadFile) -> int:
 
 class ProductAttachmentsBase(BaseModel):
     product_id: int = Field(..., gt=0)
-    # url: str
-    # original_name: str
-    # file_type: str
-    # size: int
+    url: str
+    original_name: str
+    file_type: str
+    size: int
+    is_deleted: int
+    file_id: str
+    key: str
     model_config = ConfigDict(from_attributes=True)
-    # @classmethod
-    # def as_form(cls,
-    #             # id: int = Form(...),
-    #             product_id: int = Form(default=Depends(
-    #                 check_product_id)),
-    #             url: str = Form(None),
-    #             file_type: str = Form(None),
-    #             size: int = Form(None),
-    #             original_name: str = Form(None)
-    #             ):
-    #     return cls(
-    #         # id=id,
-    #         product_id=product_id,
-    #         url=url,
-    #         original_name=original_name,
-    #         file_type=file_type,
-    #         size=size
-    #     )
-
-
-# class FileInfo(BaseModel):
-#     original_name: str
-#     file_type: str
-#     size: int
-#     items: List[FileInfo]
 
 
 class ProductAttachmentCreate(ProductAttachmentsBase):
@@ -59,7 +37,16 @@ class ProductAttachmentCreate(ProductAttachmentsBase):
         )
 
 
-class ProductAttachmentBaseResponse(ProductAttachmentsBase):
+class ProductAttachmentBaseResponse(BaseModel):
+    id: int
+    product_id: int = Field(..., gt=0)
+    url: str
+    original_name: Optional[str]
+    file_type: Optional[str]
+    size: Optional[int]
+    is_deleted: Optional[int]
+    file_id: Optional[str]
+    key: Optional[str]
     created_at: Optional[datetime]
     updated_at: Optional[datetime]
     model_config = ConfigDict(from_attributes=True)
