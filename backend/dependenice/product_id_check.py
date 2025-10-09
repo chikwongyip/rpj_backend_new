@@ -17,6 +17,14 @@ async def check_product_id(product_id: int = Form(...), db: Session = Depends(ge
     return product_id
 
 
+async def check_brand_id(brand_id: int, db: Session = Depends(get_db)):
+    products = db.query(Products).filter_by(brand_id=brand_id).first()
+    if products:
+        raise HTTPException(
+            status_code=400, detail=f"已有产品维护了该品牌"
+        )
+    return brand_id
+
 # async def check_attachment_product_ids(attachment_input: ProductAttachmentsBase, db: Session = Depends(get_db)):
     # product_ids = (ProductAttachmentsBase
     #                [attachment_input.data.product_id if isinstance(attachment_input.data, ProductAttachmentsBase)
