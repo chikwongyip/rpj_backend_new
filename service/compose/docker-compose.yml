@@ -28,3 +28,26 @@ services:
       - 3306:3306
     environment:
       - MYSQL_ROOT_PASSWORD=528478huaHUA@
+
+  nacos:
+    image: nacos/nacos-server:v2.3.2
+    container_name: 'docker-nacos'
+    networks:
+      - backend
+    volumes:
+      - ../nacos/logs:/home/nacos/logs:rw
+      - ../nacos/data:/home/nacos/data:rw
+    ports:
+      - 8848:8848   # 控制台 + OpenAPI
+      - 9848:9848   # gRPC 客户端端口（2.x 客户端必需）
+      - 9849:9849   # gRPC 服务端同步端口
+    environment:
+      - MODE=standalone
+      - JVM_XMS=256m
+      - JVM_XMX=256m
+      - JVM_XMN=128m
+      # 本地开发开启鉴权（Nacos 2.2+ 必须同时配置 token 与 identity，否则无法启动）
+      - NACOS_AUTH_ENABLE=true
+      - NACOS_AUTH_TOKEN=SecretKey012345678901234567890123456789012345678901234567890123456789
+      - NACOS_AUTH_IDENTITY_KEY=nacos
+      - NACOS_AUTH_IDENTITY_VALUE=nacos
