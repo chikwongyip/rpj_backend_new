@@ -1,0 +1,22 @@
+2026-08-26 07:00:45,242 INFO use local db service for init
+
+2026-08-26 07:00:45,737 WARN Lexical error at line 4, column 66.  Encountered: <EOF> after : "".
+
+2026-08-26 07:00:45,739 WARN Syntax error: Encountered "*" at line 1, column 1.
+
+2026-08-26 07:00:45,880 WARN Column 'SRC_IP' already exists in Table/View '"NACOS"."CONFIG_INFO_TAG"'.
+
+2026-08-26 07:00:45,881 WARN Column 'SRC_IP' already exists in Table/View '"NACOS"."HIS_CONFIG_INFO"'.
+
+2026-08-26 07:00:45,882 WARN Column 'SRC_IP' already exists in Table/View '"NACOS"."CONFIG_INFO"'.
+
+2026-08-26 07:00:45,883 WARN Column 'SRC_IP' already exists in Table/View '"NACOS"."CONFIG_INFO_BETA"'.
+
+2026-08-26 07:00:45,884 WARN Column 'PUBLISH_TYPE' already exists in Table/View '"NACOS"."HIS_CONFIG_INFO"'.
+
+2026-08-26 07:00:45,884 WARN Column 'EXT_INFO' already exists in Table/View '"NACOS"."HIS_CONFIG_INFO"'.
+
+2026-08-26 07:00:45,885 WARN Column 'GRAY_NAME' already exists in Table/View '"NACOS"."HIS_CONFIG_INFO"'.
+
+2026-08-26 07:00:45,885 INFO use StandaloneDatabaseOperateImpl
+

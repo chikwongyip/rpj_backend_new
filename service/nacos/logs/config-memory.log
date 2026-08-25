@@ -1,0 +1,18 @@
+2026-08-26 07:00:46,147 INFO [long-pulling] client count 0
+
+2026-08-26 07:00:56,155 INFO toNotifyTaskSize = 0
+
+2026-08-26 07:00:56,156 INFO toClientNotifyTaskSize = 0
+
+2026-08-26 07:00:56,156 INFO [long-pulling] client count 0
+
+2026-08-26 07:00:56,157 INFO groupCount = 0, subscriberClientCount = 0, subscriberCount = 0
+
+2026-08-26 07:01:06,157 INFO toNotifyTaskSize = 0
+
+2026-08-26 07:01:06,157 INFO [long-pulling] client count 0
+
+2026-08-26 07:01:06,157 INFO groupCount = 0, subscriberClientCount = 0, subscriberCount = 0
+
+2026-08-26 07:01:06,158 INFO toClientNotifyTaskSize = 0
+

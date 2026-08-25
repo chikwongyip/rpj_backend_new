@@ -1,4 +1,3 @@
-version: '1.0'
 networks:
   backend:
 
@@ -30,7 +29,7 @@ services:
       - MYSQL_ROOT_PASSWORD=528478huaHUA@
 
   nacos:
-    image: nacos/nacos-server:v2.3.2
+    image: nacos/nacos-server:v2.5.1
     container_name: 'docker-nacos'
     networks:
       - backend

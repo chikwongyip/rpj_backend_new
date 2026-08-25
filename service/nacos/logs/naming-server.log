@@ -1,0 +1,14 @@
+2026-08-26 07:00:46,899 INFO [SelectorManager] Load SelectorContextBuilder(class com.alibaba.nacos.naming.selector.context.CmdbSelectorContextBuilder) contextType(CMDB) successfully.
+
+2026-08-26 07:00:46,899 INFO [SelectorManager] Load SelectorContextBuilder(class com.alibaba.nacos.naming.selector.context.NoneSelectorContextBuilder) contextType(NONE) successfully.
+
+2026-08-26 07:00:46,899 INFO [SelectorManager] Load Selector(class com.alibaba.nacos.naming.selector.LabelSelector) type(label) contextType(CMDB) successfully.
+
+2026-08-26 07:00:46,900 INFO [SelectorManager] Load Selector(class com.alibaba.nacos.naming.selector.NoneSelector) type(none) contextType(NONE) successfully.
+
+2026-08-26 07:00:47,304 INFO Load instance extension handler []
+
+2026-08-26 07:01:12,516 INFO [NamingServerHttpClientManager] Start destroying HTTP-Client
+
+2026-08-26 07:01:12,525 INFO [NamingServerHttpClientManager] Completed destruction of HTTP-Client
+
